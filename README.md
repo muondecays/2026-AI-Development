@@ -27,7 +27,10 @@ This repository contains materials for a four-part workshop on AI development fo
     - [Why ChatGPT Can't Be Trusted With](https://garymarcus.substack.com/p/why-chatgpt-cant-be-trusted-with) - Discussion of reliability issues and when not to trust LLM outputs.
     - [Breaking: Marcus Weighs In, Mostly](https://garymarcus.substack.com/p/breaking-marcus-weighs-in-mostly) - Critical analysis of AI capabilities and limitations.
     - [Let's Be Honest: Generative AI Isn't](https://garymarcus.substack.com/p/lets-be-honest-generative-ai-isnt) - Perspective on what generative AI can and cannot do reliably.
-  
+
+  - **Breaking News**
+    - [Claude Code Unpacked](https://ccunpacked.dev/) 
+
 
 ### Lecture 2 (Costs and Processing)
 - **Topic**: Vertical Slices, MVPs, Crawling, Walking, and Running
