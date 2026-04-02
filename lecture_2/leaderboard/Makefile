@@ -1,4 +1,4 @@
-PORT ?= 8000
+PORT ?= 80
 IMAGE_NAME = leaderboard
 CONTAINER_NAME = leaderboard
 

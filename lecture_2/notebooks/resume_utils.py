@@ -115,7 +115,7 @@ def submit_score(
     team_name: str,
     resume_id: str,
     score: float,
-    api_url: str = "http://ai-leaderboard.site:8000",
+    api_url: str = "http://ai-leaderboard.site",
     api_key: str = "lecture2-secret-key",
 ) -> dict:
     """
