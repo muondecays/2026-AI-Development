@@ -1,0 +1,27 @@
+name: Deploy Leaderboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lecture_2/leaderboard/**'
+      - '.github/workflows/deploy-leaderboard.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 3.134.128.141
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/2026-spring-AI-Development
+            git pull origin main
+            cd lecture_2
+            pkill -f "uvicorn leaderboard.app:app" || true
+            nohup make -C leaderboard serve PORT=8000 > /tmp/leaderboard.log 2>&1 &
+            sleep 2
+            curl -sf http://localhost:8000/ > /dev/null && echo "Leaderboard is running" || echo "WARNING: Leaderboard failed to start"
