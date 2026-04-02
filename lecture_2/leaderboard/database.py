@@ -52,6 +52,31 @@ def get_all_submissions(db_path: Path) -> list[dict]:
     return [dict(row) for row in rows]
 
 
+def delete_submission(db_path: Path, team_name: str, resume_id: str) -> int:
+    """Delete a single submission. Returns number of rows deleted."""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.execute(
+        "DELETE FROM submissions WHERE team_name = ? AND resume_id = ?",
+        (team_name, resume_id),
+    )
+    deleted = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return deleted
+
+
+def delete_team_submissions(db_path: Path, team_name: str) -> int:
+    """Delete all submissions for a given team. Returns number of rows deleted."""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.execute(
+        "DELETE FROM submissions WHERE team_name = ?", (team_name,)
+    )
+    deleted = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return deleted
+
+
 def reset_db(db_path: Path) -> None:
     """Delete all submissions."""
     conn = sqlite3.connect(db_path)

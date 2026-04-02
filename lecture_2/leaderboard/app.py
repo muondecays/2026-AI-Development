@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-from .database import DEFAULT_DB_PATH, add_submission, get_all_submissions, init_db, reset_db
+from .database import DEFAULT_DB_PATH, add_submission, delete_submission, delete_team_submissions, get_all_submissions, init_db, reset_db
 
 API_KEY = os.environ.get("LEADERBOARD_API_KEY", "lecture2-secret-key")
 
@@ -101,6 +101,35 @@ async def submit_score(
 
     add_submission(DEFAULT_DB_PATH, body.team_name, body.resume_id, body.score)
     return {"status": "ok", "team_name": body.team_name, "resume_id": body.resume_id, "score": body.score}
+
+
+class DeleteSubmissionRequest(BaseModel):
+    team_name: str
+    resume_id: str
+
+
+@app.delete("/api/submit")
+async def delete_single_submission(
+    body: DeleteSubmissionRequest, x_api_key: str | None = Header(default=None)
+):
+    _check_api_key(x_api_key)
+    deleted = delete_submission(DEFAULT_DB_PATH, body.team_name, body.resume_id)
+    if deleted == 0:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    return {"status": "ok", "team_name": body.team_name, "resume_id": body.resume_id, "deleted": deleted}
+
+
+class DeleteTeamRequest(BaseModel):
+    team_name: str
+
+
+@app.post("/api/delete_team")
+async def delete_team(
+    body: DeleteTeamRequest, x_api_key: str | None = Header(default=None)
+):
+    _check_api_key(x_api_key)
+    deleted = delete_team_submissions(DEFAULT_DB_PATH, body.team_name)
+    return {"status": "ok", "team_name": body.team_name, "deleted": deleted}
 
 
 @app.post("/api/reset")
