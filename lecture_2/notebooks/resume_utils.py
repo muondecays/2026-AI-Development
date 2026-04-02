@@ -1,9 +1,11 @@
 """Utility functions for resume screening with LLMs."""
 
-from typing import Any, Dict
+from typing import Any, Dict, Type
 import httpx
 import json
 import csv
+
+from pydantic import BaseModel
 
 
 def load_resumes(csv_path: str) -> Dict[str, Dict[str, str]]:
@@ -46,8 +48,8 @@ def analyze_resume(
     api_key: str,
     prompt: str,
     resume_text: str,
-    output_schema: str,
-    model: str = "anthropic/claude-sonnet-4.6",
+    output_schema: Type[BaseModel],
+    model: str = "anthropic/claude-sonnet-4-6",
     temperature: float = 0.3
 ) -> Dict[str, Any]:
     """
@@ -57,25 +59,20 @@ def analyze_resume(
         api_key: OpenRouter API key
         prompt: The instruction for what to analyze
         resume_text: The resume text to analyze
-        output_schema: JSON schema description for the output format
-        model: Model to use (default: Claude 3.5 Sonnet)
+        output_schema: A Pydantic BaseModel class defining the output structure
+        model: Model to use
         temperature: Sampling temperature (default: 0.3 for consistency)
 
     Returns:
         Dict with 'result' (parsed JSON), 'error' (if any), and 'usage' (token counts)
     """
-    # Build the full prompt
+    schema = output_schema.model_json_schema()
+
     full_prompt = f"""{prompt}
 
 Resume:
-{resume_text[:3000]}
+{resume_text[:3000]}"""
 
-Return a JSON object with this structure:
-{output_schema}
-
-Return ONLY valid JSON, no additional text."""
-
-    # Make API call
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -86,7 +83,14 @@ Return ONLY valid JSON, no additional text."""
         "messages": [{"role": "user", "content": full_prompt}],
         "temperature": temperature,
         "max_tokens": 1500,
-        "response_format": {"type": "json_object"}
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": schema.get("title", "response"),
+                "strict": True,
+                "schema": schema,
+            },
+        },
     }
 
     try:
@@ -110,26 +114,13 @@ Return ONLY valid JSON, no additional text."""
                     "usage": data.get("usage", {}),
                 }
 
-            # Strip markdown code fences if present
-            cleaned = content.strip()
-            if cleaned.startswith("```"):
-                cleaned = cleaned.split("\n", 1)[1]  # remove ```json line
-                cleaned = cleaned.rsplit("```", 1)[0]  # remove trailing ```
-                cleaned = cleaned.strip()
-
-            result = json.loads(cleaned)
+            parsed = output_schema.model_validate_json(content)
 
             return {
-                "result": result,
+                "result": parsed.model_dump(),
                 "error": None,
                 "usage": data.get("usage", {})
             }
-    except json.JSONDecodeError as e:
-        return {
-            "result": None,
-            "error": f"Failed to parse JSON: {e}. Raw content: {content!r}",
-            "usage": data.get("usage", {}),
-        }
     except Exception as e:
         return {
             "result": None,
