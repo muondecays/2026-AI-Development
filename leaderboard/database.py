@@ -14,7 +14,7 @@ LECTURE3_DB_PATH = REPO_ROOT / "leaderboard" / "leaderboard_lecture3.db"
 # ---------------------------------------------------------------------------
 
 def init_db(db_path: Path) -> None:
-    """Create the submissions table if it doesn't exist (lecture 2 schema)."""
+    """Create the submissions table if it doesn't exist."""
     conn = sqlite3.connect(db_path)
     conn.execute(
         """
@@ -27,21 +27,27 @@ def init_db(db_path: Path) -> None:
         )
         """
     )
+    # Add cost column if it doesn't exist (migration for existing DBs)
+    try:
+        conn.execute("ALTER TABLE submissions ADD COLUMN cost REAL")
+    except sqlite3.OperationalError:
+        pass  # column already exists
     conn.commit()
     conn.close()
 
 
 def add_submission(
-    db_path: Path, team_name: str, resume_id: str, score: float
+    db_path: Path, team_name: str, resume_id: str, score: float,
+    cost: float | None = None,
 ) -> None:
-    """Insert or replace a submission (lecture 2)."""
+    """Insert or replace a submission."""
     conn = sqlite3.connect(db_path)
     conn.execute(
         """
-        INSERT OR REPLACE INTO submissions (team_name, resume_id, score, submitted_at)
-        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        INSERT OR REPLACE INTO submissions (team_name, resume_id, score, submitted_at, cost)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?)
         """,
-        (team_name, resume_id, score),
+        (team_name, resume_id, score, cost),
     )
     conn.commit()
     conn.close()
@@ -52,7 +58,7 @@ def get_all_submissions(db_path: Path) -> list[dict]:
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     rows = conn.execute(
-        "SELECT team_name, resume_id, score, submitted_at FROM submissions "
+        "SELECT team_name, resume_id, score, submitted_at, cost FROM submissions "
         "ORDER BY submitted_at DESC"
     ).fetchall()
     conn.close()

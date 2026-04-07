@@ -100,6 +100,7 @@
         td { border-bottom: 1px solid #eee; border-right: 1px solid #eee; }
         .score { font-size: 1.1rem; font-weight: 600; color: #1a1a2e; }
         .timestamp { font-size: 0.7rem; color: #999; margin-top: 2px; }
+        .cost { font-size: 0.7rem; color: #27ae60; margin-top: 1px; }
         .empty-cell { color: #ccc; font-style: italic; font-size: 0.85rem; }
         .empty-msg {
             text-align: center;
@@ -143,6 +144,7 @@
                         {% set key = (rid, team) %}
                         {% if key in grid %}
                         <div class="score">{{ grid[key].score }}</div>
+                        {% if grid[key].cost %}<div class="cost">${{ "%.4f"|format(grid[key].cost) }}</div>{% endif %}
                         <div class="timestamp">{{ grid[key].submitted_at }}</div>
                         {% else %}
                         <span class="empty-cell">-</span>
