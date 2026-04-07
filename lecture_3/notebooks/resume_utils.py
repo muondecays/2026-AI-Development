@@ -141,3 +141,88 @@ IMPORTANT: Return ONLY valid JSON, no additional text or markdown formatting."""
             "error": str(e),
             "usage": {}
         }
+
+
+def submit_score(
+    team_name: str,
+    resume_id: str,
+    score: float,
+    api_url: str = "http://ai-leaderboard.site/lecture3",
+    api_key: str = "lecture3-secret-key",
+) -> dict:
+    """
+    Submit a resume score to the leaderboard.
+
+    Args:
+        team_name: Your team's name
+        resume_id: The resume ID being scored
+        score: Score from 0-100
+        api_url: Leaderboard server URL
+        api_key: API key for authentication
+
+    Returns:
+        Dict with server response
+    """
+    with httpx.Client(timeout=10) as client:
+        resp = client.post(
+            f"{api_url}/api/submit",
+            json={"team_name": team_name, "resume_id": str(resume_id), "score": score},
+            headers={"X-API-Key": api_key},
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+
+def delete_score(
+    team_name: str,
+    resume_id: str,
+    api_url: str = "http://ai-leaderboard.site/lecture3",
+    api_key: str = "lecture3-secret-key",
+) -> dict:
+    """
+    Delete a single submission from the leaderboard.
+
+    Args:
+        team_name: The team name
+        resume_id: The resume ID to delete
+        api_url: Leaderboard server URL
+        api_key: API key for authentication
+
+    Returns:
+        Dict with server response
+    """
+    with httpx.Client(timeout=10) as client:
+        resp = client.request(
+            "DELETE",
+            f"{api_url}/api/submit",
+            json={"team_name": team_name, "resume_id": str(resume_id)},
+            headers={"X-API-Key": api_key},
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+
+def delete_team(
+    team_name: str,
+    api_url: str = "http://ai-leaderboard.site/lecture3",
+    api_key: str = "lecture3-secret-key",
+) -> dict:
+    """
+    Delete all submissions for a team from the leaderboard.
+
+    Args:
+        team_name: The team name to delete
+        api_url: Leaderboard server URL
+        api_key: API key for authentication
+
+    Returns:
+        Dict with server response
+    """
+    with httpx.Client(timeout=10) as client:
+        resp = client.post(
+            f"{api_url}/api/delete_team",
+            json={"team_name": team_name},
+            headers={"X-API-Key": api_key},
+        )
+        resp.raise_for_status()
+        return resp.json()

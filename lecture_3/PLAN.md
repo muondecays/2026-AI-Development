@@ -33,27 +33,41 @@ senior software engineer job req.
 - Gold resumes: rewrite `ID` column as `g01`, `g02`, ..., `g05`
 - Silver resumes: `s01`, `s02`, ..., `s05`
 - Everything else: keep original numeric ID
-- Applies in `lecture_3/data/resumes_final.csv` (and matching `final_resumes/`
-  directory filenames if we reference files directly)
-- Leaderboard `VALID_RESUME_IDS` is loaded from this CSV at startup, so new
-  prefixed IDs are accepted automatically after the server restarts
+- Lecture 3 CSV is renamed to `resumes_final_with_gold_silver.csv` — contains
+  all original resumes plus the 10 gold/silver entries
+- PDF files for gold/silver go in a top-level `data/final_resumes/` directory
+  (single source of truth); existing per-lecture PDF copies stay for now
+- Leaderboard `VALID_RESUME_IDS` is loaded from the Lecture 3 CSV at startup,
+  so new prefixed IDs are accepted automatically after the server restarts
 
 ### Sourcing the gold/silver set
 
-**Synthesize** the 10 resumes via Q&A with Nick. Process:
+**Synthesize** the 10 resumes. Scoping decisions (from Q&A with Nick):
 
-1. Claude asks Nick a series of scoping questions: target persona, relevant
-   tech stack, years-of-experience ranges, education norms, industry flavor,
-   what "gold-level" signals to include, what "silver-level" signals to
-   weaken, length/formatting, etc.
-2. Based on answers, generate 5 gold + 5 silver resumes as plain text.
-3. **Design constraint**: gold and silver resumes should be *similar* in
-   surface form (length, structure, vocabulary, industry). The difference
-   should be in substantive signal — depth of experience, seniority of
-   responsibilities, scope of projects, specific tech match — not superficial
-   cues the model can shortcut on. This makes the discrimination task
-   genuinely hard and makes the techniques we teach actually matter.
-4. Nick reviews and approves each resume before it lands in the CSV.
+- **Job req**: Same senior full-stack .NET/JS/AWS role used across all
+  lectures (`job_req_senior.md`). Gold/silver calibrated against it.
+- **Gold archetype**: Candidates who match or exceed the req — 5-10+ years,
+  strong C#/.NET + JS frameworks + SQL + AWS. Each gold hits the core
+  requirements to varying degrees; may be missing a technology or two but
+  otherwise clear hires. Include one non-traditional background (e.g., PhD
+  in physics) who still hits the technical requirements.
+- **Silver archetype**: Mix of (a) junior devs (1-2 years, not enough depth)
+  and (b) experienced devs in the wrong domain (e.g., 10 years of JavaScript
+  frontend-only, or embedded C, missing .NET entirely). Close enough to look
+  plausible on the surface but substantively weak fits.
+- **Design constraint**: gold and silver resumes should be *similar* in
+  surface form (length, structure, vocabulary, industry). The difference
+  should be in substantive signal — depth of experience, seniority of
+  responsibilities, scope of projects, specific tech match — not superficial
+  cues the model can shortcut on. This makes the discrimination task
+  genuinely hard and makes the techniques we teach actually matter.
+- **People**: Use realistic fake names, real companies, real universities,
+  plausible job titles and project descriptions.
+
+Process:
+1. Generate 5 gold (`g01`–`g05`) + 5 silver (`s01`–`s05`) resume texts.
+2. Nick reviews and approves each resume before it lands in the CSV.
+3. Generate matching PDF files for each resume.
 
 ## Sorting in the Notebook
 
@@ -176,9 +190,8 @@ argument (already the case).
   re-running Lecture 2 code will just need a fresh pull.
 - Add a `/` root route that redirects to `/lecture3` (or a lecture picker
   page).
-- Old `/api/*` routes can either be kept as aliases to `/lecture2/api/*` for
-  one lecture's grace period, or removed cleanly. Recommend: keep as thin
-  aliases for one week then delete.
+- **No legacy `/api/*` aliases** — remove old routes cleanly. Students must
+  update to the new `/lecture2/api/*` paths.
 
 ### Deployment notes
 
@@ -229,34 +242,39 @@ illustrate each technique once). Repurpose freed space for:
 ## Work Breakdown
 
 1. **Data prep — synthesized resumes**
-   - [ ] Q&A session: Claude asks Nick scoping questions (persona, stack,
-         YoE ranges, industry, how gold/silver should differ)
-   - [ ] Generate 5 gold (`g01`–`g05`) + 5 silver (`s01`–`s05`) resume texts
+   - [x] Q&A session: scoping questions answered (see "Sourcing the gold/silver
+         set" above)
+   - [x] Generate 5 gold (`g01`–`g05`) + 5 silver (`s01`–`s05`) resume texts
    - [ ] Nick reviews and approves
-   - [ ] Append to `lecture_3/data/resumes_final.csv` (or create a new
-         `resumes_lecture3.csv` — TBD)
+   - [x] Create `lecture_3/data/resumes_final_with_gold_silver.csv` (original
+         resumes + 10 new entries)
+   - [x] Generate PDF files for each gold/silver resume
+   - [x] Place PDFs in top-level `data/final_resumes/` (canonical location)
+   - [x] Copy PDFs to `lecture_3/data/final_resumes/` for notebook convenience
 
 2. **Leaderboard restructure** (top-level `leaderboard/`)
-   - [ ] Create top-level `leaderboard/` directory
-   - [ ] Move `lecture_2/leaderboard/` contents there
-   - [ ] Split `app.py` into `lecture2` and `lecture3` `APIRouter`s
-   - [ ] Separate DB files per lecture; shared `database.py` helpers
-   - [ ] Rename current template to `lecture2.html`; create `lecture3.html`
-   - [ ] Mount routers at `/lecture2` and `/lecture3`
-   - [ ] Move Dockerfile + Makefile to top-level `leaderboard/`
-   - [ ] Add `strategy` field to Lecture 3 submission schema
-   - [ ] Implement `/lecture3/api/metrics` (ordinal metrics from g/s prefixes)
-   - [ ] Update `resume_utils.submit_score` in Lecture 2 to hit `/lecture2/api/submit`
+   - [x] Create top-level `leaderboard/` directory
+   - [x] Move `lecture_2/leaderboard/` contents there
+   - [x] Split `app.py` into `lecture2` and `lecture3` `APIRouter`s
+   - [x] Separate DB files per lecture; shared `database.py` helpers
+   - [x] Rename current template to `lecture2.html`; create `lecture3.html`
+   - [x] Mount routers at `/lecture2` and `/lecture3`
+   - [x] Move Dockerfile + Makefile to top-level `leaderboard/`
+   - [x] Add `strategy` field to Lecture 3 submission schema
+   - [x] Implement `/lecture3/api/metrics` (ordinal metrics from g/s prefixes)
+   - [x] Update `resume_utils.submit_score` in Lecture 2 to hit `/lecture2/api/submit`
+   - [x] Update GitHub Actions workflow for new `leaderboard/` path
+   - [x] Create top-level `pyproject.toml` with fastapi/uvicorn/jinja2 deps
    - [ ] Deploy
 
 3. **Notebook rewrite** (`lecture_3_resume_scorer_improvement.ipynb`)
-   - [ ] Setup + sorted load + tier slicing (gold / silver / wild)
-   - [ ] Shared eval helper: `evaluate(scores_df)` → gap, rank sep, std dev
-   - [ ] Shared submit helper that tags `strategy` per run
-   - [ ] Section per technique (baseline → decomp → grounded → rubric →
+   - [x] Setup + sorted load + tier slicing (gold / silver / wild)
+   - [x] Shared eval helper: `evaluate(scores_df)` → gap, rank sep, std dev
+   - [x] Shared submit helper that tags `strategy` per run
+   - [x] Section per technique (baseline → decomp → grounded → rubric →
          CoT-via-schema → choice)
-   - [ ] Final comparison DataFrame + bar chart of gold–silver gap per strategy
-   - [ ] Fetch `/lecture3/api/metrics` at end to confirm server-side metrics
+   - [x] Final comparison DataFrame + bar chart of gold–silver gap per strategy
+   - [x] Fetch `/lecture3/api/metrics` at end to confirm server-side metrics
          match notebook-side
 
 4. **Slide rewrite** (`lecture_3.tex`)
@@ -266,13 +284,47 @@ illustrate each technique once). Repurpose freed space for:
    - [ ] Add ordinal metrics (gap, rank separation)
    - [ ] Update "Your Turn" workflow to match new notebook structure
 
-## Open Questions
+## Decisions (resolved)
 
-- Gold/silver resumes: append to existing `resumes_final.csv`, or new
-  `resumes_lecture3.csv` so Lecture 2 data stays untouched?
-- Should the Lecture 3 leaderboard show *all* submissions live, or only the
-  latest submission per `(team, strategy, resume_id)`?
-- Keep `/api/*` legacy aliases for lecture 2 for a grace period, or cut over
-  cleanly?
-- Should the notebook auto-fetch `/lecture3/api/metrics` or leave that as a
-  TODO so students wire it up themselves?
+- **CSV naming**: Lecture 3 uses `resumes_final_with_gold_silver.csv` — original
+  resumes plus 10 gold/silver entries. Lecture 2 CSV stays untouched.
+- **Submission behavior**: Append all submissions (no latest-only filtering).
+  Keyed by `(team_name, strategy, resume_id)` with INSERT OR REPLACE.
+- **Legacy routes**: No `/api/*` aliases. Clean cut to `/lecture2/api/*` and
+  `/lecture3/api/*`.
+- **Notebook metrics**: Notebook computes metrics locally AND shows how to
+  fetch from `/lecture3/api/metrics` — not left as a student exercise.
+
+## File Inventory
+
+Resume data is currently duplicated across lectures. Current state:
+
+### CSV files (identical, 2788 lines each)
+- `lecture_1/data/resumes_final.csv`
+- `lecture_2/data/resumes_final.csv`
+- `lecture_3/data/resumes_final.csv`
+- `lecture_4/data/resumes_final.csv`
+
+### PDF resume directories (130 PDFs each)
+- `lecture_2/data/final_resumes/`
+- `lecture_3/data/final_resumes/`
+- `lecture_4/data/final_resumes/`
+
+### Canonical data location (new)
+- `data/final_resumes/` — top-level, single source of truth for PDFs
+- Per-lecture copies kept for notebook convenience (students use `../data/`)
+
+### Job requirements (identical across lectures)
+- `lecture_1/data/job_req_senior.md`
+- `lecture_2/data/job_req_senior.md`
+- `lecture_3/data/job_req_senior.md`
+- `lecture_4/data/job_req_senior.md`
+
+### Leaderboard (done)
+- Old: `lecture_2/leaderboard/` (still in place, not deleted)
+- New: top-level `leaderboard/` with per-lecture routers (app.py, database.py,
+  Makefile, Dockerfile, templates/lecture2.html, templates/lecture3.html)
+
+### GitHub Actions (done)
+- `.github/workflows/deploy-leaderboard.yml` — triggers on
+  `leaderboard/**` changes, SSH-deploys to EC2 at `3.134.128.141`.

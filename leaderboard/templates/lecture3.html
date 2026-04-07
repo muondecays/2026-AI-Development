@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard – Lecture 3 Metrics</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            padding: 2rem;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: #1a1a2e;
+        }
+        .subtitle {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .controls {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .controls button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .controls button:hover { background: #c0392b; }
+        .controls a {
+            margin-left: 1rem;
+            color: #2980b9;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .controls a:hover { text-decoration: underline; }
+        .table-wrapper {
+            max-width: 100%;
+            overflow-x: auto;
+            margin: 0 auto;
+        }
+        table {
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-width: 100%;
+        }
+        th, td {
+            padding: 0.6rem 1rem;
+            text-align: center;
+            white-space: nowrap;
+        }
+        th {
+            background: #1a1a2e;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        th:hover { background: #16213e; }
+        th .sort-arrow { font-size: 0.7rem; margin-left: 4px; }
+        td { border-bottom: 1px solid #eee; border-right: 1px solid #eee; }
+        tr:nth-child(even) td { background: #f8f9fa; }
+        tr:hover td { background: #e8f0fe; }
+        .team-cell { font-weight: 600; text-align: left; }
+        .positive { color: #27ae60; font-weight: 600; }
+        .negative { color: #e74c3c; font-weight: 600; }
+        .neutral { color: #333; }
+        .na { color: #ccc; font-style: italic; }
+        .empty-msg {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+            font-style: italic;
+        }
+        .refresh-note {
+            text-align: center;
+            margin-top: 1rem;
+            color: #888;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Leaderboard &mdash; Lecture 3</h1>
+    <p class="subtitle">Gold/Silver discrimination metrics &middot; sorted by Gold-Silver Gap</p>
+    <div class="controls">
+        <button onclick="resetLeaderboard()">Reset Leaderboard</button>
+        <a href="/lecture2">&larr; Lecture 2</a>
+    </div>
+
+    {% if metrics_list %}
+    <div class="table-wrapper">
+        <table id="leaderboard">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">Team<span class="sort-arrow"></span></th>
+                    <th onclick="sortTable(1)">Gold Mean<span class="sort-arrow"></span></th>
+                    <th onclick="sortTable(2)">Silver Mean<span class="sort-arrow"></span></th>
+                    <th onclick="sortTable(3)">Gold-Silver Gap<span class="sort-arrow"></span></th>
+                    <th onclick="sortTable(4)">Rank Separation<span class="sort-arrow"></span></th>
+                    <th onclick="sortTable(5)">Gold Std<span class="sort-arrow"></span></th>
+                    <th onclick="sortTable(6)">Silver Std<span class="sort-arrow"></span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in metrics_list %}
+                <tr>
+                    <td class="team-cell">{{ m.team_name }}</td>
+                    <td>{% if m.gold_mean is not none %}{{ m.gold_mean }}{% else %}<span class="na">n/a</span>{% endif %}</td>
+                    <td>{% if m.silver_mean is not none %}{{ m.silver_mean }}{% else %}<span class="na">n/a</span>{% endif %}</td>
+                    <td>
+                        {% if m.gold_silver_gap is not none %}
+                            <span class="{% if m.gold_silver_gap > 0 %}positive{% elif m.gold_silver_gap < 0 %}negative{% else %}neutral{% endif %}">
+                                {{ m.gold_silver_gap }}
+                            </span>
+                        {% else %}
+                            <span class="na">n/a</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if m.rank_separation is not none %}
+                            <span class="{% if m.rank_separation >= 0.7 %}positive{% elif m.rank_separation < 0.5 %}negative{% else %}neutral{% endif %}">
+                                {{ m.rank_separation }}
+                            </span>
+                        {% else %}
+                            <span class="na">n/a</span>
+                        {% endif %}
+                    </td>
+                    <td>{% if m.gold_std is not none %}{{ m.gold_std }}{% else %}<span class="na">n/a</span>{% endif %}</td>
+                    <td>{% if m.silver_std is not none %}{{ m.silver_std }}{% else %}<span class="na">n/a</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-msg">No submissions yet.</p>
+    {% endif %}
+
+    <p class="refresh-note">Auto-refreshes every 10 seconds</p>
+
+    <script>
+        setTimeout(() => location.reload(), 10000);
+
+        let currentSortCol = null;
+        let currentSortAsc = false;
+
+        function sortTable(colIndex) {
+            const table = document.getElementById('leaderboard');
+            const tbody = table.tBodies[0];
+            const rows = Array.from(tbody.rows);
+
+            const asc = (currentSortCol === colIndex) ? !currentSortAsc : false;
+            currentSortCol = colIndex;
+            currentSortAsc = asc;
+
+            rows.sort((a, b) => {
+                let aText = a.cells[colIndex].textContent.trim();
+                let bText = b.cells[colIndex].textContent.trim();
+
+                // Text column (team)
+                if (colIndex === 0) {
+                    return asc
+                        ? aText.localeCompare(bText)
+                        : bText.localeCompare(aText);
+                }
+
+                // Numeric columns
+                let aVal = (aText === 'n/a') ? -Infinity : parseFloat(aText);
+                let bVal = (bText === 'n/a') ? -Infinity : parseFloat(bText);
+                return asc ? aVal - bVal : bVal - aVal;
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+
+            // Update sort arrows
+            const headers = table.tHead.rows[0].cells;
+            for (let i = 0; i < headers.length; i++) {
+                const arrow = headers[i].querySelector('.sort-arrow');
+                if (arrow) {
+                    if (i === colIndex) {
+                        arrow.textContent = asc ? ' \u25B2' : ' \u25BC';
+                    } else {
+                        arrow.textContent = '';
+                    }
+                }
+            }
+        }
+
+        function resetLeaderboard() {
+            const password = prompt("Enter password to reset the leaderboard:");
+            if (!password) return;
+
+            if (password !== "password") {
+                alert("Incorrect password");
+                return;
+            }
+
+            fetch("/lecture3/api/reset", {
+                method: "POST",
+                headers: { "X-API-Key": "{{ api_key }}" }
+            })
+            .then(resp => {
+                if (!resp.ok) throw new Error("Reset failed");
+                location.reload();
+            })
+            .catch(err => alert(err.message));
+        }
+    </script>
+</body>
+</html>

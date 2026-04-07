@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'lecture_2/leaderboard/**'
+      - 'leaderboard/**'
       - '.github/workflows/deploy-leaderboard.yml'
 
 jobs:
@@ -20,7 +20,6 @@ jobs:
           script: |
             cd ~/2026-spring-AI-Development
             git pull origin main
-            cd lecture_2
             make -C leaderboard docker-down
             make -C leaderboard docker-up
             sleep 2
