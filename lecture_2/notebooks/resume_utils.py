@@ -68,6 +68,22 @@ def analyze_resume(
     """
     schema = output_schema.model_json_schema()
 
+    # Strip keys that OpenRouter's strict json_schema mode doesn't accept
+    def _clean_schema(obj):
+        if isinstance(obj, dict):
+            return {
+                k: _clean_schema(v)
+                for k, v in obj.items()
+                if k not in ("title", "minimum", "maximum", "exclusiveMinimum",
+                             "exclusiveMaximum", "default")
+            }
+        if isinstance(obj, list):
+            return [_clean_schema(item) for item in obj]
+        return obj
+
+    schema = _clean_schema(schema)
+    schema["additionalProperties"] = False
+
     full_prompt = f"""{prompt}
 
 Resume:
@@ -86,7 +102,8 @@ Resume:
         "response_format": {
             "type": "json_schema",
             "json_schema": {
-                "name": schema.get("title", "response"),
+                "name": output_schema.__name__,
+                "strict": True,
                 "schema": schema,
             },
         },

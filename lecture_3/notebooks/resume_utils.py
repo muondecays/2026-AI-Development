@@ -52,6 +52,22 @@ def analyze_resume(
     """
     schema = output_schema.model_json_schema()
 
+    # Strip keys that OpenRouter's strict json_schema mode doesn't accept
+    def _clean_schema(obj):
+        if isinstance(obj, dict):
+            return {
+                k: _clean_schema(v)
+                for k, v in obj.items()
+                if k not in ("title", "minimum", "maximum", "exclusiveMinimum",
+                             "exclusiveMaximum", "default")
+            }
+        if isinstance(obj, list):
+            return [_clean_schema(item) for item in obj]
+        return obj
+
+    schema = _clean_schema(schema)
+    schema["additionalProperties"] = False
+
     full_prompt = f"""{prompt}
 
 Resume:
@@ -70,7 +86,8 @@ Resume:
         "response_format": {
             "type": "json_schema",
             "json_schema": {
-                "name": schema.get("title", "response"),
+                "name": output_schema.__name__,
+                "strict": True,
                 "schema": schema,
             },
         },
@@ -87,6 +104,7 @@ Resume:
                     "result": None,
                     "error": f"API error: {data['error']}",
                     "usage": {},
+                    "cost": None,
                 }
 
             content = data["choices"][0]["message"]["content"]
@@ -95,20 +113,26 @@ Resume:
                     "result": None,
                     "error": f"Empty response from model. Raw response: {data}",
                     "usage": data.get("usage", {}),
+                    "cost": None,
                 }
 
             parsed = output_schema.model_validate_json(content)
 
+            usage = data.get("usage", {})
+            cost = usage.get("total_cost")
+
             return {
                 "result": parsed.model_dump(),
                 "error": None,
-                "usage": data.get("usage", {})
+                "usage": usage,
+                "cost": cost,
             }
     except Exception as e:
         return {
             "result": None,
             "error": str(e),
-            "usage": {}
+            "usage": {},
+            "cost": None,
         }
 
 
@@ -116,14 +140,18 @@ def submit_score(
     team_name: str,
     resume_id: str,
     score: float,
+    cost: float | None = None,
     api_url: str = "http://ai-leaderboard.site/lecture3",
     api_key: str = "leaderboard-api-key",
 ) -> dict:
     """Submit a resume score to the leaderboard."""
+    payload = {"team_name": team_name, "resume_id": str(resume_id), "score": score}
+    if cost is not None:
+        payload["cost"] = cost
     with httpx.Client(timeout=10) as client:
         resp = client.post(
             f"{api_url}/api/submit",
-            json={"team_name": team_name, "resume_id": str(resume_id), "score": score},
+            json=payload,
             headers={"X-API-Key": api_key},
         )
         resp.raise_for_status()

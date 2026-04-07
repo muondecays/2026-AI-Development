@@ -260,6 +260,7 @@ class L3SubmissionRequest(BaseModel):
     team_name: str
     resume_id: str
     score: float
+    cost: float | None = None
 
 
 class L3DeleteSubmissionRequest(BaseModel):
@@ -358,7 +359,7 @@ async def lecture3_page(request: Request):
         if rid not in seen_resumes:
             resume_ids.append(rid)
             seen_resumes.add(rid)
-        grid[(rid, tid)] = {"score": s["score"], "submitted_at": s["submitted_at"]}
+        grid[(rid, tid)] = {"score": s["score"], "submitted_at": s["submitted_at"], "cost": s.get("cost")}
 
     team_names.sort()
     # Sort resume IDs: gold first, then silver, then wild (numeric)
@@ -393,12 +394,13 @@ async def lecture3_submit(
         raise HTTPException(status_code=400, detail=f"Invalid resume_id: {body.resume_id}")
     if not 0 <= body.score <= 100:
         raise HTTPException(status_code=400, detail="Score must be between 0 and 100")
-    add_submission(LECTURE3_DB_PATH, body.team_name, body.resume_id, body.score)
+    add_submission(LECTURE3_DB_PATH, body.team_name, body.resume_id, body.score, cost=body.cost)
     return {
         "status": "ok",
         "team_name": body.team_name,
         "resume_id": body.resume_id,
         "score": body.score,
+        "cost": body.cost,
     }
 
 
