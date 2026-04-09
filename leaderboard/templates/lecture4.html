@@ -53,7 +53,6 @@
             border-collapse: collapse;
             background: white;
             border-radius: 8px;
-            overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             min-width: 100%;
         }
@@ -147,16 +146,13 @@
         }
         .dropdown-menu {
             display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
+            position: fixed;
             background: white;
             border: 1px solid #ddd;
             border-radius: 4px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 100;
+            z-index: 9999;
             min-width: 140px;
-            overflow: hidden;
         }
         .dropdown-menu.show { display: block; }
         .dropdown-menu button {
@@ -280,6 +276,63 @@
             display: flex;
             gap: 1.5rem;
         }
+        /* Clickable cells */
+        td.clickable-cell { cursor: pointer; }
+        td.clickable-cell:hover { outline: 2px solid #2980b9; outline-offset: -2px; }
+        /* Single email modal */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 5000;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        .modal-backdrop.show { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 0.8rem 1.2rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 { font-size: 1rem; color: #1a1a2e; }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #888;
+            padding: 0 0.3rem;
+            line-height: 1;
+        }
+        .modal-close:hover { color: #333; }
+        .modal-body {
+            padding: 1.2rem;
+            white-space: pre-wrap;
+            font-size: 0.92rem;
+            line-height: 1.6;
+            color: #333;
+        }
+        .modal-footer {
+            padding: 0.5rem 1.2rem;
+            border-top: 1px solid #eee;
+            font-size: 0.75rem;
+            color: #888;
+            display: flex;
+            gap: 1.5rem;
+        }
     </style>
 </head>
 <body>
@@ -327,16 +380,16 @@
                         </div>
                     </td>
                     {% for team in team_names %}
-                    <td>
-                        {% set key = (rid, team) %}
-                        {% if key in grid %}
+                    {% set key = (rid, team) %}
+                    {% if key in grid %}
+                    <td class="clickable-cell" onclick="openCellModal('{{ rid }}', '{{ team }}')">
                         <div><span class="outcome-badge {{ grid[key].outcome | lower }}">{{ grid[key].outcome }}</span></div>
                         {% if grid[key].cost is not none %}<div class="cost">${{ "%.5f"|format(grid[key].cost) }}</div>{% endif %}
                         <div class="timestamp" data-utc="{{ grid[key].submitted_at }}">{{ grid[key].submitted_at }}</div>
-                        {% else %}
-                        <span class="empty-cell">-</span>
-                        {% endif %}
                     </td>
+                    {% else %}
+                    <td><span class="empty-cell">-</span></td>
+                    {% endif %}
                     {% endfor %}
                 </tr>
                 {% endfor %}
@@ -348,6 +401,18 @@
     {% endif %}
 
     <p class="refresh-note">Auto-refreshes every 10 seconds</p>
+
+    <!-- Single email modal -->
+    <div id="cellModal" class="modal-backdrop" onclick="if(event.target===this)closeCellModal()">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="cellModalTitle"></h3>
+                <button class="modal-close" onclick="closeCellModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="cellModalBody"></div>
+            <div class="modal-footer" id="cellModalFooter"></div>
+        </div>
+    </div>
 
     <!-- Email slideshow overlay -->
     <div id="emailOverlay" class="overlay">
@@ -393,13 +458,18 @@
             }
         });
 
-        /* ---- Dropdown toggle ---- */
+        /* ---- Dropdown toggle (fixed positioning) ---- */
         function toggleDropdown(event, id) {
             event.stopPropagation();
-            document.querySelectorAll('.dropdown-menu.show').forEach(el => {
-                if (el.id !== id) el.classList.remove('show');
-            });
-            document.getElementById(id).classList.toggle('show');
+            const menu = document.getElementById(id);
+            const wasOpen = menu.classList.contains('show');
+            document.querySelectorAll('.dropdown-menu.show').forEach(el => el.classList.remove('show'));
+            if (!wasOpen) {
+                const rect = event.currentTarget.getBoundingClientRect();
+                menu.style.top = (rect.bottom + 4) + 'px';
+                menu.style.left = Math.max(0, rect.right - 140) + 'px';
+                menu.classList.add('show');
+            }
         }
 
         document.addEventListener('click', () => {
@@ -507,6 +577,40 @@
             document.querySelectorAll('.dropdown-menu.show').forEach(el => el.classList.remove('show'));
         }
 
+        /* ---- Single cell email modal ---- */
+        function openCellModal(resumeId, teamName) {
+            const entries = (emailData[resumeId] || []);
+            const entry = entries.find(e => e.team_name === teamName);
+            if (!entry) return;
+
+            const outcomeLower = (entry.outcome || '').toLowerCase();
+            document.getElementById('cellModalTitle').innerHTML =
+                '<span>' + escapeHtml(teamName) + '</span>&nbsp;&nbsp;' +
+                '<span class="outcome-badge ' + outcomeLower + '">' + escapeHtml(entry.outcome) + '</span>';
+            document.getElementById('cellModalBody').textContent = entry.email_text || '(no email)';
+
+            const parts = [];
+            if (entry.score != null) parts.push('Score: ' + entry.score);
+            if (entry.cost != null) parts.push('Cost: $' + entry.cost.toFixed(5));
+            if (entry.submitted_at) {
+                try {
+                    const d = new Date(entry.submitted_at + (entry.submitted_at.includes('Z') ? '' : 'Z'));
+                    parts.push(d.toLocaleString('en-US', {
+                        timeZone: 'America/Chicago',
+                        month: 'short', day: 'numeric',
+                        hour: 'numeric', minute: '2-digit'
+                    }));
+                } catch(e) {}
+            }
+            document.getElementById('cellModalFooter').textContent = parts.join('  |  ');
+
+            document.getElementById('cellModal').classList.add('show');
+        }
+
+        function closeCellModal() {
+            document.getElementById('cellModal').classList.remove('show');
+        }
+
         /* ---- Email Slideshow ---- */
         function openEmailSlideshow(resumeId) {
             closeDropdowns();
@@ -588,9 +692,9 @@
             return div.innerHTML;
         }
 
-        /* Close overlay on Escape key */
+        /* Close overlays on Escape key */
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeEmailSlideshow();
+            if (e.key === 'Escape') { closeCellModal(); closeEmailSlideshow(); }
         });
 
         /* Close overlay when clicking outside content */
