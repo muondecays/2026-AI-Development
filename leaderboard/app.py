@@ -15,6 +15,7 @@ from .database import (
     LECTURE2_DB_PATH,
     LECTURE3_DB_PATH,
     add_submission,
+    delete_resume_submissions,
     delete_submission,
     delete_team_submissions,
     get_all_submissions,
@@ -141,6 +142,10 @@ class L2DeleteSubmissionRequest(BaseModel):
     resume_id: str
 
 
+class L2DeleteResumeRequest(BaseModel):
+    resume_id: str
+
+
 class L2DeleteTeamRequest(BaseModel):
     team_name: str
 
@@ -213,6 +218,15 @@ async def lecture2_delete_team(
     return {"status": "ok", "team_name": body.team_name, "deleted": deleted}
 
 
+@lecture2_router.post("/api/delete_resume")
+async def lecture2_delete_resume(
+    body: L2DeleteResumeRequest, x_api_key: str | None = Header(default=None)
+):
+    _check_api_key(x_api_key)
+    deleted = delete_resume_submissions(LECTURE2_DB_PATH, body.resume_id)
+    return {"status": "ok", "resume_id": body.resume_id, "deleted": deleted}
+
+
 @lecture2_router.post("/api/reset")
 async def lecture2_reset(x_api_key: str | None = Header(default=None)):
     _check_api_key(x_api_key)
@@ -265,6 +279,10 @@ class L3SubmissionRequest(BaseModel):
 
 class L3DeleteSubmissionRequest(BaseModel):
     team_name: str
+    resume_id: str
+
+
+class L3DeleteResumeRequest(BaseModel):
     resume_id: str
 
 
@@ -427,6 +445,15 @@ async def lecture3_delete_team(
     _check_api_key(x_api_key)
     deleted = delete_team_submissions(LECTURE3_DB_PATH, body.team_name)
     return {"status": "ok", "team_name": body.team_name, "deleted": deleted}
+
+
+@lecture3_router.post("/api/delete_resume")
+async def lecture3_delete_resume(
+    body: L3DeleteResumeRequest, x_api_key: str | None = Header(default=None)
+):
+    _check_api_key(x_api_key)
+    deleted = delete_resume_submissions(LECTURE3_DB_PATH, body.resume_id)
+    return {"status": "ok", "resume_id": body.resume_id, "deleted": deleted}
 
 
 @lecture3_router.post("/api/reset")

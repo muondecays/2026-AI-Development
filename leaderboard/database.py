@@ -90,6 +90,18 @@ def delete_team_submissions(db_path: Path, team_name: str) -> int:
     return deleted
 
 
+def delete_resume_submissions(db_path: Path, resume_id: str) -> int:
+    """Delete all submissions for a given resume ID. Returns number of rows deleted."""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.execute(
+        "DELETE FROM submissions WHERE resume_id = ?", (resume_id,)
+    )
+    deleted = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return deleted
+
+
 def reset_db(db_path: Path) -> None:
     """Delete all submissions (works for both lecture 2 and 3)."""
     conn = sqlite3.connect(db_path)
