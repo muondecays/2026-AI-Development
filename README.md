@@ -59,13 +59,7 @@ This repository contains materials for a four-part workshop on AI development fo
 - **Hands-on**: Apply techniques to improve the resume scorer from Lecture 2
 
 - **Readings for lecture 4**:
-  - **Agents and Tools**
-    - [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) - Anthropic's guide to agent patterns and best practices
-    - [AI Agents: A Practical Guide](https://simonwillison.net/2024/Oct/21/practical-ai-agents/) - Simon Willison's overview of agent architectures
-
-  - **Production Considerations**
-    - [Observability for AI Agents](https://www.honeycomb.io/blog/observability-ai-agents) - Monitoring and debugging agent systems
-    - [When Not to Use AI Agents](https://www.anthropic.com/research/when-not-to-use-agents) - Understanding agent limitations and anti-patterns
+  - [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) - Anthropic's guide to agent patterns and best practices
 
 ### Lecture 4 (AI Agents & Tool Use)
 - **Topic**: Building an Application Routing Agent

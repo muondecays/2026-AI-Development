@@ -26,46 +26,97 @@
   \tableofcontents
 \end{frame}
 
-\section{Review and Context}
+\section{Where We Are and Where We're Going}
 
-\begin{frame}{What We've Covered So Far}
-\textbf{Lecture 1: Foundations}
+\begin{frame}{The Story So Far}
+\textbf{Lecture 1}: Foundations
 \begin{itemize}
-    \item Understanding LLMs, tokens, context windows, and APIs
-    \item Token economics and pricing
+    \item LLMs, tokens, context windows, APIs, pricing
 \end{itemize}
-\vspace{0.3cm}
+\vspace{0.2cm}
 
-\textbf{Lecture 2: Building AI Systems}
+\textbf{Lecture 2}: Building a System
 \begin{itemize}
-    \item Vertical slices, Crawl-Walk-Run methodology
-    \item Building a resume scoring system
+    \item Vertical slices and Crawl-Walk-Run
+    \item Built a resume scorer: one prompt $\rightarrow$ one score
 \end{itemize}
-\vspace{0.3cm}
+\vspace{0.2cm}
 
-\textbf{Lecture 3: Improving Performance}
+\textbf{Lecture 3}: Making It Good
 \begin{itemize}
-    \item Decomposition, grounding with citations, few-shot examples
-    \item Improving the resume scorer
+    \item Decomposition, citations, few-shot examples, temperature
+    \item Improved the scorer until gold and silver resumes separate cleanly
 \end{itemize}
+\vspace{0.4cm}
+
+\textbf{Result}: We have a reliable process for scoring resumes. \\
+\textbf{Question}: Now what do we \textit{do} with those scores?
 \end{frame}
 
-\begin{frame}{Limitations We've Encountered}
-\textbf{Our current systems are limited to text input and text output}:
+\begin{frame}{What We Want to Build}
+\textbf{A hiring pipeline doesn't end at a score.} After scoring, you need to:
 \begin{itemize}
-    \item LLMs can only process text and generate text
-    \item They cannot directly:
-    \begin{itemize}
-        \item Query databases or retrieve external information
-        \item Call APIs or interact with web services
-        \item Schedule meetings or send emails
-        \item Make decisions that trigger multiple sequential actions
-    \end{itemize}
-    \item Each call is independent - no persistence or state management
+    \item Schedule interviews for strong candidates
+    \item Reject poor matches with a polite email
+    \item Flag edge cases for human review
+    \item Route specialists to the right department
 \end{itemize}
 \vspace{0.3cm}
 
-\textbf{Today}: Learn how to give LLMs the ability to interact with the world through \textbf{tools} and \textbf{agentic systems}
+These are \textbf{actions}, not text. Our current system can't do any of them.
+\vspace{0.3cm}
+
+\textbf{Today}: Give LLMs the ability to \textit{act} --- through \textbf{tools} and \textbf{agents}.
+\end{frame}
+
+\section{The Optimized Scorer: What ``Solved'' Looks Like}
+
+\begin{frame}{Recap: The Prompt That Works}
+After three lectures of iteration, we have a scoring prompt with:
+\vspace{0.2cm}
+\begin{enumerate}
+    \item \textbf{Core disqualifier checks} --- missing .NET $\rightarrow$ cap at 55, no SQL $\rightarrow$ cap at 60
+    \item \textbf{Anchor-point scoring bands} --- explicit ranges (0--30, 31--49, \ldots, 93--100)
+    \item \textbf{Bonus/penalty system} --- AWS +3, no Agile $-$2, frontend-only $-$10
+    \item \textbf{7 calibration examples} --- from ``registered nurse $\rightarrow$ 5--15'' to ``9 years C\#/.NET + React + AWS $\rightarrow$ 93--97''
+\end{enumerate}
+\vspace{0.3cm}
+
+This is context engineering in action: every rule, cap, and example is steering the model toward consistent, defensible scores.
+\end{frame}
+
+\begin{frame}{The Results}
+\textbf{Scoring 8 resumes} (2 gold, 2 silver, 4 wild) with Mistral Small:
+\vspace{0.3cm}
+
+\begin{center}
+\begin{tabular}{lcc}
+\textbf{Tier} & \textbf{Scores} & \textbf{Mean} \\
+\hline
+Gold (strong match) & 97, 98 & 97.5 \\
+Silver (weak match) & 72, 72 & 72.0 \\
+Wild (random) & 10, 15, 15, 15 & 13.75 \\
+\end{tabular}
+\end{center}
+\vspace{0.3cm}
+
+\begin{itemize}
+    \item Clean separation: gold $\gg$ silver $\gg$ wild
+    \item Total cost: \$0.002 for all 8 resumes
+    \item Uses a \textit{cheap} model (Mistral Small) --- the prompt does the heavy lifting
+\end{itemize}
+\vspace{0.3cm}
+
+\textbf{Takeaway}: A well-engineered prompt can make even inexpensive models perform well. Now let's use these scores to \textit{take action}.
+\end{frame}
+
+\section{Readings}
+
+\begin{frame}{Required Reading}
+\textbf{Agents and Tools}
+\begin{itemize}
+    \item \href{https://www.anthropic.com/engineering/building-effective-agents}{Building Effective Agents} --- Anthropic's guide to agent patterns and best practices
+\end{itemize}
 \end{frame}
 
 \section{AI Agents}
