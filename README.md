@@ -103,12 +103,3 @@ From a lecture directory (e.g. `lecture_2/`):
 - `make notebook` (starts Jupyter in Docker on port 8888)
 - `make interactive` (drops you into a bash shell in the container)
 
-
-## Improvements for next time
-
-- Additional Readings
-- First lecture needs a better set of organization and framework. Get to coding faster.
-- Do the resume reviewer only through out the entire system. Simplify problem (less resumes), better more actionalable To Do's e.g. have them report which resumes are best and worst. 
-- All of the slides need some fun improvements, graphics, better pacing, etc.
-- last lecture todo needs to be a bit longer on the to do. The notebook was the best out of all of them in terms of how it played out but the tasks needed some work.
-
