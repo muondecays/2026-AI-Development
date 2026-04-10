@@ -8,85 +8,50 @@ This course was developed in partnership between the University of Chicago's [Ca
 
 This repository contains materials for a four-part workshop on AI development for advanced undergraduates (3rd/4th year).
 
-### Lecture 1 (slides-first)
-- **Topic**: Foundations
-- **Slides**: [lecture_1.pdf](lecture_1/slides/lecture_1.pdf)
+### Lecture 1: Foundations
+[Slides](lecture_1/slides/lecture_1.pdf)
+- What LLMs are, how they work (tokens, context windows, temperature), and what they cost
+- Hands-on with the OpenRouter API: sending your first programmatic LLM call
+- Understanding the gap between "chatbot" and "AI-powered application"
+
+**Readings for Lecture 2:**
+- [A Survey of AI Coding](https://paulgp.com/ai-coding/2025/12/02/ai-coding.html)
+- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) — Anthropic's guide to designing context windows
+- [Context Engineering](https://simonwillison.net/2025/Jun/27/context-engineering/) — Simon Willison's take
+- [Agent Best Practices](https://cursor.com/blog/agent-best-practices) — Cursor's guide to context engineering
+- [Welcome to Gas Town](https://steve-yegge.medium.com/welcome-to-gas-town-4f25ee16dd04) — LONG, only read as long as you are interested!
+- [Why ChatGPT Can't Be Trusted](https://garymarcus.substack.com/p/why-chatgpt-cant-be-trusted-with), [Breaking: Marcus Weighs In](https://garymarcus.substack.com/p/breaking-marcus-weighs-in-mostly), [Let's Be Honest](https://garymarcus.substack.com/p/lets-be-honest-generative-ai-isnt) — Gary Marcus on AI limitations
+- [Claude Code Unpacked](https://ccunpacked.dev/)
 
 
-#### Readings for lecture 2:
-  - **AI Coding**
-    - [A survey of AI Coding](https://paulgp.com/ai-coding/2025/12/02/ai-coding.html)
-  - **Context Engineering** 
-    - [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - Anthropic's guide to designing context windows for reliable agent behavior.
-    - [Context Engineering](https://simonwillison.net/2025/Jun/27/context-engineering/) - Simon Willison's take.
-    - [Agent Best Practices](https://cursor.com/blog/agent-best-practices) - Cursor's guide to context engineering.
+### Lecture 2: Building a System
+[Slides](lecture_2/slides/lecture_2.pdf)
+- From idea to working prototype: vertical slices, MVPs, and the Crawl-Walk-Run framework
+- Build a resume screening pipeline — one prompt that scores 130 resumes against a job description
+- Understanding costs, latency, and model selection trade-offs in production
 
-  - [Welcome to Gas Town](https://steve-yegge.medium.com/welcome-to-gas-town-4f25ee16dd04) - LONG, only read as long as you are interested!
-  
-  - **Gary Marcus on AI Limitations** 
-    - [Why ChatGPT Can't Be Trusted](https://garymarcus.substack.com/p/why-chatgpt-cant-be-trusted-with) - Discussion of reliability issues and when not to trust LLM outputs.
-    - [Breaking: Marcus Weighs In, Mostly](https://garymarcus.substack.com/p/breaking-marcus-weighs-in-mostly) - Critical analysis of AI capabilities and limitations.
-    - [Let's Be Honest: Generative AI Isn't](https://garymarcus.substack.com/p/lets-be-honest-generative-ai-isnt) - Perspective on what generative AI can and cannot do reliably.
-
-  - **Breaking News**
-    - [Claude Code Unpacked](https://ccunpacked.dev/) 
+**Readings for Lecture 3:**
+- [Horizontal Slice vs Vertical Slice Programming](https://victormagalhaes-dev.medium.com/comparing-approaches-horizontal-slice-vs-vertical-slice-programming-d8db017952e4)
+- [AI Unit of Work](https://blog.nilenso.com/blog/2025/09/15/ai-unit-of-work/) — How to scope work for AI systems
+- [AI Blindspots](https://ezyang.github.io/ai-blindspots/) — Where AI agents fail and how to design around it
+- [Scaling Agents](https://cursor.com/blog/scaling-agents) — Cursor's insights on production-grade AI agents
 
 
-### Lecture 2 (Costs and Processing)
-- **Topic**: Vertical Slices, MVPs, Crawling, Walking, and Running
-- **Slides**: [lecture_2.pdf](lecture_2/slides/lecture_2.pdf)
-- **Notebook**: `lecture_2/notebooks/resume_screening.ipynb`
-- **Data**: `lecture_2/data/resumes_final.csv` (130 resumes for AI-assisted scoring)
+### Lecture 3: Making It Good
+[Slides](lecture_3/slides/lecture_3.pdf)
+- Context engineering techniques that reliably improve LLM output: decomposition, grounding with citations, and few-shot examples
+- Iterate on the Lecture 2 resume scorer until gold and silver candidates separate cleanly
+- Learn why a well-engineered prompt can make even cheap models perform well
 
-- **Readings for lecture 3**:
-  - **Vertical vs. Horizontal Slices**
-    - [Comparing Approaches: Horizontal Slice vs Vertical Slice Programming](https://victormagalhaes-dev.medium.com/comparing-approaches-horizontal-slice-vs-vertical-slice-programming-d8db017952e4) - Understanding different development approaches.
+**Readings for Lecture 4:**
+- [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) — Anthropic's guide to agent patterns and best practices
 
-  - **Right-Sized Unit of Work**
-    - [AI Unit of Work](https://blog.nilenso.com/blog/2025/09/15/ai-unit-of-work/) - How to scope work appropriately for AI systems.
 
-  - **AI Limitations and Best Practices**
-    - [AI Blindspots](https://ezyang.github.io/ai-blindspots/) - Understanding where AI agents fail and how to design around it.
-    - [Scaling Agents](https://cursor.com/blog/scaling-agents) - Cursor's insights on building production-grade AI agents.
-
-### Lecture 3 (Improving Performance)
-- **Topic**: Context Engineering Techniques for Better Results
-- **Slides**: [lecture_3.pdf](lecture_3/slides/lecture_3.pdf)
-- **Notebook**: `lecture_3/notebooks/lecture_3_resume_scorer_improvement.ipynb`
-- **Data**: `lecture_3/data/resumes_final.csv` (130 resumes), `lecture_3/data/job_req_senior.md`
-- **Key Techniques**: Decomposition, Grounding with Citations, Few-Shot Examples
-- **Teaching Example**: Expense report validator (slides only)
-- **Hands-on**: Apply techniques to improve the resume scorer from Lecture 2
-
-- **Readings for lecture 4**:
-  - [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) - Anthropic's guide to agent patterns and best practices
-
-### Lecture 4 (AI Agents & Tool Use)
-- **Topic**: Building an Application Routing Agent
-- **Slides**: [lecture_4.pdf](lecture_4/slides/lecture_4.pdf)
-- **Notebook**: `lecture_4/notebooks/lecture_4_application_routing_agent.ipynb`
-- **Data**: `lecture_4/data/resumes_final.csv` (130 resumes), `lecture_4/data/job_req_senior.md`
-- **Key Concepts**:
-  - Understanding AI agents and the agent loop (Observe → Think → Act)
-  - Tool registries and function calling
-  - Multi-turn decision making with action history
-  - Action logging and observability
-  - The tool ecosystem (MCP, agents.txt, skills/plugins)
-  - Production considerations: safety, reliability, monitoring
-  - Common failure modes (infinite loops, tool hallucination, premature completion)
-  - Ethical considerations (bias, transparency, accountability)
-  - Human-in-the-loop design patterns
-- **Teaching Examples**:
-  - Weather query agent (3-turn example showing context evolution)
-  - Ralph Wiggum plugin (preventing premature completion)
-- **Hands-on**: Build an agent that routes job applications through multiple decision points
-  - Extract candidate features (years, skills, education) using Lecture 3 techniques
-  - Implement 7 tools: schedule assessments, reject applications, flag for review, send emails, etc.
-  - Build the agent decision function and agent loop
-  - Analyze results with pandas DataFrames
-  - **Task 1**: Calculate costs for 3 candidates and estimate for 130
-  - **Task 2**: Experiment with temperature settings (0.2, 0.5, 1.0)
-  - **Task 3**: Run on full dataset of 130 candidates and verify cost estimates
+### Lecture 4: AI Agents & Tool Use
+[Slides](lecture_4/slides/lecture_4.pdf)
+- Move from generating text to taking action: give LLMs tools that interact with the real world
+- Build an agentic email outreach system — the agent scores resumes, decides outcomes, and drafts personalized emails
+- Production considerations: failure modes, safety guardrails, ethical implications, and human-in-the-loop design
 
 ## Running notebooks (per lecture) 
 
